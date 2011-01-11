@@ -83,7 +83,7 @@ def HandleAudioRequest(pathNouns, count):
   elif count == 1:
     (id,title) = pathNouns[0].split('$')
     dir = MediaContainer('art-default.png', 'Details', "NPR", title)
-    maxNumToReturn = 5
+    maxNumToReturn = 200
     for item in XML.ElementFromString(HTTP.GetCached(LIST_URL + '&id=' + id, CACHE_INTERVAL)).xpath('//item'):
       dir.AppendItem(DirectoryItem('story/'+item.get('id')+'$'+_E(title)+'$'+_UE(_S(item,'title')), 
                      _S(item,'title'), _R('icon-default.jpg'), _S(item,'additionalInfo')))
