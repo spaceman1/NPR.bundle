@@ -22,8 +22,8 @@ musicDirs = [ ['Recent Artists', '3008'],
 def Start():
 	Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, "National Public Radio", "icon-default.jpg", "art-default.png")
 	Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
-	MediaContainer.art = R('art-default.png')
-	DirectoryItem.thumb = R('icon-default.png')
+	MediaContainer.art = R('art-default.jpg')
+	DirectoryItem.thumb = R('icon-default.jpg')
 
 ####################################################################################################
 
@@ -34,6 +34,7 @@ def S(item, attr):
 		return ''
 
 ####################################################################################################
+
 def ParseStories(dir, url):
 #	dir.SetAttr('filelabel', '%T')
 	trackIndex = 1
@@ -44,14 +45,13 @@ def ParseStories(dir, url):
 		try:
 			mp3 = item.xpath('audio/format/mp3')[0].text
 			
-			dir.Append(Function(TrackItem(PlayMusic, title=S(item,'title'), duration=duration, summary=S(item,'teaser'), subtitle=' '.join(S(item,'storyDate').split()[0:4])), url=mp3))
-			
-#			track = TrackItem(PLUGIN_PREFIX+'/media/'+_E(mp3)+'.mp3', , 'National Public Radio', S(item,'slug'), str(trackIndex), '', '', 
+			dir.Append(Function(TrackItem(PlayMusic, title=S(item,'title'), artist=S(item, 'slug'), duration=duration, summary=S(item,'teaser'), subtitle=' '.join(S(item,'storyDate').split()[0:4])), url=mp3))
 			trackIndex += 1
-		except:
+		except IndexError:
 			pass
 		
 ####################################################################################################
+
 def MainMenu():
 	dir = MediaContainer()
 	for name, value in dirs:
@@ -59,13 +59,13 @@ def MainMenu():
 			dir.Append(Function(DirectoryItem(MusicMenu, title=name)))
 		else:
 			dir.Append(Function(DirectoryItem(SectionMenu, title=name), id=value))
-	dir.Append(SearchDirectoryItem(Search, title="Search...", prompt="Search NPR", thumb=R("search.png")))
+	dir.Append(Function(InputDirectoryItem(Search, title="Search...", prompt="Search NPR", thumb=R("search.png"))))
 	return dir
 
 def MusicMenu(sender):
 	dir = MediaContainer(title2="Music Artists")
 	for name, value in musicDirs:
-		dir.Append(Function(DirectoryItem(ArtistMenu, title=name), id=value))
+		dir.Append(Function(DirectoryItem(SectionMenu, title=name), id=value))
 	return dir
 
 def Search(sender, query):
@@ -74,7 +74,9 @@ def Search(sender, query):
 	return ParseStories(dir, url)
 
 def PlayMusic(sender, url):
-	return Redirect(HTTP.Request(url, CACHE_INTERVAL).split('\n')[0])
+	target = HTTP.Request(url, cacheTime=CACHE_INTERVAL).content.split('\n')[0]
+	Log(target)
+	return Redirect(target)
 	
 def SectionMenu(sender, id):
 	dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
@@ -82,7 +84,7 @@ def SectionMenu(sender, id):
 	for item in XML.ElementFromURL(LIST_URL + '&id=' + id, cacheTime=CACHE_INTERVAL).xpath('//item'):
 		dir.Append(Function(DirectoryItem(StoryMenu, title=S(item,'title'), thumb=R('icon-default.jpg'), summary=S(item,'additionalInfo')), id=item.get('id')))
 		if id == '3008':
-			maxNumToReturn -= 1
+			maxNumToReturn = maxNumToReturn - 1
 			if maxNumToReturn <= 0: 
 				break
 	return dir
