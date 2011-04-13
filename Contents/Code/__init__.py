@@ -49,7 +49,7 @@ def ParseStories(dir, url):
 			trackIndex += 1
 		except IndexError:
 			pass
-		
+	
 ####################################################################################################
 
 def MainMenu():
@@ -93,5 +93,6 @@ def SectionMenu(sender, id):
 def StoryMenu(sender, id):
 	dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
 	ParseStories(dir, QUERY_URL + '&id=' + id)
-
+	if len(dir) == 0:
+		return MessageContainer('No Audio', 'No audio files were found in this section.')
 	return dir
